@@ -11,6 +11,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: test
-      run: echo "Branch is ${GITHUB_REF_NAME}"
-           ls
+      run: |
+         echo "Branch is ${GITHUB_REF_NAME}"
+         pwd
+         ls
+         
     
