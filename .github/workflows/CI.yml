@@ -10,7 +10,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: test
+    - name: Create Dockerfile
       run: |
          cat <<EOF > Dockerfile
          FROM chimbuko/mochi:ubuntu18.04 AS build_base
@@ -33,6 +33,8 @@ jobs:
          #RUN chmod a+x run_tests_upload_coverage.sh
          ENTRYPOINT [ "./run_tests_upload_coverage.sh" ]
          EOF
+    - name: Echo contents
+      run: |
          cat Dockerfile
          
     
