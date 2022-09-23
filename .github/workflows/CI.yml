@@ -10,6 +10,28 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Create Docker run script
+      run: |
+         cat <<EOF > run_tests_upload_coverage.sh
+         #!/bin/bash
+         #Fail if anything fails
+         set -e
+         set -o pipefail
+         cd /opt/chimbuko/ad/test
+         echo "Executing tests"
+         ./run_all.sh DOCKER_SETUP_MOCHI
+         cd /build
+         echo "Gathering coverage data"
+         lcov --capture --directory . --output-file coverage.info
+         lcov --remove coverage.info '/usr/*' '/spack/*' '*/3rdparty/*' '*/app/*' '/opt/*' --output-file coverage2.info
+         mv coverage2.info /Downloads/PerformanceAnalysis/
+
+         echo "Uploading coverage data"
+         cd /Downloads/PerformanceAnalysis
+         #Add -d to the line below to dump the upload to stdout rather than uploading it
+         bash <(curl -s https://codecov.io/bash) -t d416f950-cacb-4716-a3a8-e608fd3bf84a -f coverage2.info -X gcov -K -v
+         echo "Done"
+         EOF   
     - name: Create Dockerfile
       run: |
          cat <<EOF > Dockerfile
@@ -27,14 +49,16 @@ jobs:
              CC=mpicc CXX=mpicxx ../Downloads/PerformanceAnalysis/configure --with-adios2=/opt/adios2 --with-network=ZMQ --with-perf-metric --prefix=/opt/chimbuko/ad --enable-gcov --with-pkg-config && \
              make -j 4 install && cd /opt/chimbuko/ad/test
          RUN cd /Downloads/PerformanceAnalysis && git log | head -1 > /opt/chimbuko/ad/git_version
-         #RUN apt-get update && apt-get install -y lcov vim
-         #COPY run_tests_upload_coverage.sh /Downloads/
-         #WORKDIR /Downloads
-         #RUN chmod a+x run_tests_upload_coverage.sh
+         RUN apt-get update && apt-get install -y lcov vim
+         COPY run_tests_upload_coverage.sh /Downloads/
+         WORKDIR /Downloads
+         RUN chmod a+x run_tests_upload_coverage.sh
          ENTRYPOINT [ "./run_tests_upload_coverage.sh" ]
          EOF
     - name: Echo contents
       run: |
          cat Dockerfile
-         
+    - name: Docker build
+      run: |
+         docker build -f Dockerfile -t chimbuko:CI .
     
