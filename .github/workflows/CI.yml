@@ -39,9 +39,9 @@ jobs:
          COPY --from=chimbuko/adios2:ubuntu18.04 /opt /opt
          ################
          FROM build_base AS build        
-         COPY . /Downloads/
-         WORKDIR /Downloads/PerformanceAnalysis
-         RUN ./autogen.sh
+         WORKDIR /Downloads
+         COPY . /Downloads/PerformanceAnalysis/
+         RUN ls && cd PerformanceAnalysis/ && ls && ./autogen.sh
          WORKDIR /build
          SHELL ["/bin/bash", "-c"]
          ENV CPATH=/opt/cereal/include:${CPATH}
