@@ -61,4 +61,9 @@ jobs:
     - name: Docker build
       run: |
          docker build -f Dockerfile -t chimbuko:CI .
-    
+    - name: Docker run
+      run: |
+         ci_env=`bash <(curl -s https://codecov.io/env)`
+         echo "${ci_env}"
+         docker run ${ci_env} -it chimbuko:CI
+
